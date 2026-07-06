@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERP Bridge — 대시보드</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1B4FD8; --surface: #F8FAFF;
+      --card: #FFFFFF; --border: #E2E8F0;
+      --text: #0F172A; --sub: #64748B;
+      --success: #10B981; --warning: #F59E0B;
+      --error: #EF4444; --radius: 10px;
+    }
+    body { font-family: -apple-system, sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    .header { background: var(--card); border-bottom: 1px solid var(--border); height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
+    .logo-text { font-size: 16px; font-weight: 700; color: var(--text); }
+    .header-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--sub); }
+    .badge { font-size: 11px; background: #EEF2FF; color: var(--primary); padding: 2px 8px; border-radius: 20px; }
+    .logout-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); font-size: 13px; cursor: pointer; color: var(--sub); text-decoration: none; }
+    .layout { display: flex; flex: 1; }
+    .sidebar { width: 200px; background: var(--card); border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
+    .nav-section { font-size: 10px; color: var(--sub); padding: 12px 16px 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .nav-item { display: block; padding: 8px 16px; font-size: 13px; color: var(--sub); text-decoration: none; }
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active { background: #EEF2FF; color: var(--primary); font-weight: 500; border-right: 2px solid var(--primary); }
+    .main { flex: 1; padding: 24px; overflow: hidden; }
+    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+
+    /* KPI 카드 */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; position: relative; overflow: hidden; }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: var(--radius) var(--radius) 0 0; }
+    .kpi-card.blue::before   { background: var(--primary); }
+    .kpi-card.green::before  { background: var(--success); }
+    .kpi-card.orange::before { background: var(--warning); }
+    .kpi-card.purple::before { background: #7C3AED; }
+    .kpi-icon { font-size: 22px; margin-bottom: 8px; }
+    .kpi-label { font-size: 12px; color: var(--sub); margin-bottom: 4px; }
+    .kpi-value { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .kpi-sub   { font-size: 11px; color: var(--sub); }
+
+    /* 중간 2단 그리드 */
+    .mid-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+    /* 카드 공통 */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+    .card-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+
+    /* 차트 */
+    .chart-wrap { position: relative; height: 180px; }
+
+    /* 근태 현황 */
+    .att-row { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .att-row:last-child { border-bottom: none; }
+    .att-label { color: var(--sub); }
+    .att-val   { font-weight: 500; }
+    .att-val.ok   { color: var(--success); }
+    .att-val.warn { color: var(--warning); }
+    .att-val.err  { color: var(--error); }
+
+    /* 하단 2단 그리드 */
+    .bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* 공지 목록 */
+    .notice-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--sub); }
+    .notice-item:last-child { border-bottom: none; }
+    .notice-date { font-size: 11px; color: #94A3B8; flex-shrink: 0; margin-left: 8px; }
+
+    /* 휴가 대기 목록 */
+    .leave-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .leave-item:last-child { border-bottom: none; }
+    .leave-tag { font-size: 11px; background: #FFF7ED; color: #92400E; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+
+    .empty-msg { font-size: 12px; color: #94A3B8; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <a class="logo" href="/dashboard">
+    <div class="logo-mark">EB</div>
+    <div class="logo-text">ERP Bridge</div>
+  </a>
+  <div class="header-right">
+    <span th:text="${loginId} + ' 님'">사용자 님</span>
+    <span class="badge" th:text="${role}">USER</span>
+    <a class="logout-btn" href="/api/auth/logout">로그아웃</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">메인</div>
+    <a class="nav-item active" href="/dashboard">대시보드</a>
+    <div class="nav-section">인사</div>
+    <a class="nav-item" href="/employees">직원 관리</a>
+    <a class="nav-item" href="/org">조직도</a>
+    <div class="nav-section">근태</div>
+    <a class="nav-item" href="/attendance">근태 현황</a>
+    <a class="nav-item" href="/leave">연차·휴가</a>
+    <div class="nav-section">급여</div>
+    <a class="nav-item" href="/salary">급여 처리</a>
+    <a class="nav-item" href="/salary/list">급여명세서</a>
+    <div class="nav-section">결재·회계</div>
+    <a class="nav-item" href="#">전자결재</a>
+    <a class="nav-item" href="#">회계 관리</a>
+    <div class="nav-section">공통</div>
+    <a class="nav-item" href="#">공지사항</a>
+  </nav>
+
+  <main class="main">
+    <div class="page-title">메인 대시보드</div>
+
+    <!-- KPI 카드 4개 -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-label">전체 재직 직원</div>
+        <div class="kpi-value" th:text="${totalEmp} + '명'">0명</div>
+        <div class="kpi-sub">재직 기준</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-label">금일 출근</div>
+        <div class="kpi-value" th:text="${todayCheckIn} + '명'">0명</div>
+        <div class="kpi-sub">출근 완료 기준</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-icon">🌴</div>
+        <div class="kpi-label">휴가 대기</div>
+        <div class="kpi-value"
+             style="color: var(--warning);"
+             th:text="${pendingLeave} + '건'">0건</div>
+        <div class="kpi-sub">승인 대기 중</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-label">이번달 급여 총액</div>
+        <div class="kpi-value"
+             style="font-size:20px; color:#7C3AED;"
+             th:text="${#numbers.formatInteger(totalSalary, 0, 'COMMA')} + '원'">0원</div>
+        <div class="kpi-sub" th:text="${currentMonth} + '월 실수령액 합계'">월 기준</div>
+      </div>
+    </div>
+
+    <!-- 중간: 출퇴근 현황 차트 + 근태 요약 -->
+    <div class="mid-grid">
+      <div class="card">
+        <div class="card-title">금일 출퇴근 현황</div>
+        <div class="chart-wrap">
+          <canvas id="attChart" role="img"
+                  aria-label="금일 출퇴근 현황 도넛 차트">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">오늘 근태 요약</div>
+        <div class="att-row">
+          <span class="att-label">전체 재직</span>
+          <span class="att-val" th:text="${totalEmp} + '명'">0명</span>
+        </div>
+        <div class="att-row">
+          <span class="att-label">출근 완료</span>
+          <span class="att-val ok"
+                th:text="${todayCheckIn} + '명'">0명</span>
+        </div>
+        <div class="att-row">
+          <span class="att-label">미출근</span>
+          <span class="att-val err"
+                th:text="${totalEmp - todayCheckIn} + '명'">0명</span>
+        </div>
+        <div class="att-row">
+          <span class="att-label">휴가 대기</span>
+          <span class="att-val warn"
+                th:text="${pendingLeave} + '건'">0건</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단: 공지사항 + 휴가 대기 -->
+    <div class="bot-grid">
+      <div class="card">
+        <div class="card-title">공지사항</div>
+        <div class="empty-msg">등록된 공지사항이 없습니다.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          휴가 대기 신청
+          <span th:if="${pendingLeave > 0}"
+                style="font-size:11px;color:var(--warning);font-weight:400;margin-left:6px;"
+                th:text="'(' + ${pendingLeave} + '건)'"></span>
+        </div>
+        <div th:if="${pendingLeave == 0}" class="empty-msg">
+          대기 중인 신청이 없습니다.
+        </div>
+        <div th:unless="${pendingLeave == 0}">
+          <div class="leave-item">
+            <span style="color:var(--sub);">휴가 신청이 있습니다.</span>
+            <a href="/leave"
+               style="font-size:12px;color:var(--primary);text-decoration:none;">
+              확인하기 →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script th:inline="javascript">
+  const todayCheckIn = /*[[${todayCheckIn}]]*/ 0;
+  const totalEmp     = /*[[${totalEmp}]]*/ 0;
+  const notChecked   = Math.max(totalEmp - todayCheckIn, 0);
+
+  /* 금일 출퇴근 도넛 차트 */
+  const ctx = document.getElementById('attChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['출근 완료', '미출근'],
+        datasets: [{
+          data: [todayCheckIn, notChecked],
+          backgroundColor: ['#10B981', '#E2E8F0'],
+          borderWidth: 0,
+          hoverOffset: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx =>
+                ctx.label + ': ' + ctx.raw + '명'
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

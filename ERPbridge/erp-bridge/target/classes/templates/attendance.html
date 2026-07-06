@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 근태 관리</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--warning: #F59E0B;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 700;
+	margin-bottom: 20px;
+}
+
+/* 상단 2단 레이아웃 */
+.top-grid {
+	display: grid;
+	grid-template-columns: 1fr 1.6fr;
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+/* 출퇴근 카드 */
+.checkin-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 20px;
+}
+
+.card-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--border);
+}
+
+.time-now {
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--text);
+	margin-bottom: 4px;
+}
+
+.time-date {
+	font-size: 13px;
+	color: var(--sub);
+	margin-bottom: 16px;
+}
+
+.status-rows {
+	margin-bottom: 16px;
+}
+
+.status-row {
+	display: flex;
+	justify-content: space-between;
+	font-size: 13px;
+	padding: 5px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.status-row:last-child {
+	border-bottom: none;
+}
+
+.status-val {
+	font-weight: 500;
+}
+
+.status-val.done {
+	color: var(--success);
+}
+
+.status-val.none {
+	color: var(--sub);
+}
+
+.btn-row {
+	display: flex;
+	gap: 8px;
+}
+
+.btn-in {
+	flex: 1;
+	height: 40px;
+	background: var(--success);
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.btn-in:disabled {
+	background: #D1FAE5;
+	color: #6EE7B7;
+	cursor: not-allowed;
+}
+
+.btn-out {
+	flex: 1;
+	height: 40px;
+	background: var(--surface);
+	color: var(--sub);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.btn-out:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.btn-out.active {
+	background: var(--warning);
+	color: #fff;
+	border-color: transparent;
+}
+
+/* 캘린더 카드 */
+.calendar-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 20px;
+}
+
+.cal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.cal-nav {
+	background: none;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	color: var(--sub);
+	padding: 0 8px;
+}
+
+.cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+	text-align: center;
+}
+
+.cal-day-label {
+	font-size: 11px;
+	color: var(--sub);
+	padding: 4px 0;
+}
+
+.cal-day {
+	font-size: 12px;
+	color: var(--sub);
+	padding: 6px 4px;
+	border-radius: 6px;
+}
+
+.cal-day.today {
+	background: var(--primary);
+	color: #fff;
+	font-weight: 600;
+}
+
+.cal-day.normal {
+	background: #ECFDF5;
+	color: #065F46;
+}
+
+.cal-day.late {
+	background: #FFF7ED;
+	color: #92400E;
+}
+
+.cal-day.leave {
+	background: var(--surface);
+	color: var(--sub);
+}
+
+.cal-day.empty {
+	visibility: hidden;
+}
+
+.cal-legend {
+	display: flex;
+	gap: 12px;
+	margin-top: 10px;
+	font-size: 11px;
+	color: var(--sub);
+}
+
+.legend-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	display: inline-block;
+	margin-right: 3px;
+	vertical-align: middle;
+}
+
+/* 근태 내역 테이블 */
+.table-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.table-card-title {
+	font-size: 14px;
+	font-weight: 600;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+th {
+	background: var(--surface);
+	color: var(--sub);
+	font-weight: 500;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+	text-align: left;
+}
+
+td {
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+	border-bottom: none;
+}
+
+.att-badge {
+	font-size: 11px;
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.att-정상 {
+	background: #ECFDF5;
+	color: #065F46;
+}
+
+.att-지각 {
+	background: #FFF7ED;
+	color: #92400E;
+}
+
+.att-연차 {
+	background: var(--surface);
+	color: var(--sub);
+}
+
+.att-결근 {
+	background: #FEF2F2;
+	color: var(--error);
+}
+
+.alert {
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	margin-bottom: 14px;
+	display: none;
+}
+
+.alert.show {
+	display: block;
+}
+
+.alert-success {
+	background: #ECFDF5;
+	color: #065F46;
+	border: 1px solid #A7F3D0;
+}
+
+.alert-error {
+	background: #FEF2F2;
+	color: var(--error);
+	border: 1px solid #FECACA;
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a class="nav-item"
+				href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item active" href="/attendance">근태 현황</a> <a
+				class="nav-item" href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item" href="/salary">급여 처리</a> <a class="nav-item"
+				href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="page-title">근태 관리</div>
+
+			<div id="alert-success" class="alert alert-success"></div>
+			<div id="alert-error" class="alert alert-error"></div>
+
+			<div class="top-grid">
+
+				<!-- 출퇴근 카드 -->
+				<div class="checkin-card">
+					<div class="card-title">오늘 출퇴근</div>
+					<div class="time-now" id="clock">00:00:00</div>
+					<div class="time-date" id="dateLabel"></div>
+
+					<div class="status-rows">
+						<div class="status-row">
+							<span>출근</span> <span class="status-val"
+								th:class="${todayAtt != null and todayAtt.checkIn != null} ? 'status-val done' : 'status-val none'"
+								th:text="${todayAtt != null and todayAtt.checkIn != null}
+                            ? ${#temporals.format(todayAtt.checkIn, 'HH:mm')} + ' 완료'
+                            : '미등록'">미등록</span>
+						</div>
+						<div class="status-row">
+							<span>퇴근</span> <span class="status-val"
+								th:class="${todayAtt != null and todayAtt.checkOut != null} ? 'status-val done' : 'status-val none'"
+								th:text="${todayAtt != null and todayAtt.checkOut != null}
+                            ? ${#temporals.format(todayAtt.checkOut, 'HH:mm')} + ' 완료'
+                            : '미등록'">미등록</span>
+						</div>
+						<div class="status-row">
+							<span>근태 유형</span> <span class="status-val"
+								th:text="${todayAtt != null} ? ${todayAtt.attType} : '-'">-</span>
+						</div>
+					</div>
+
+					<div class="btn-row">
+						<button class="btn-in" id="btnCheckIn"
+							th:disabled="${todayAtt != null and todayAtt.checkIn != null}"
+							onclick="doCheckIn()">출근 등록</button>
+						<button class="btn-out" id="btnCheckOut"
+							th:disabled="${todayAtt == null or todayAtt.checkOut != null}"
+							th:classappend="${todayAtt != null and todayAtt.checkIn != null and todayAtt.checkOut == null} ? ' active' : ''"
+							onclick="doCheckOut()">퇴근 등록</button>
+					</div>
+				</div>
+
+				<!-- 캘린더 카드 -->
+				<div class="calendar-card">
+					<div class="card-title">이번달 근태 현황</div>
+					<div class="cal-header">
+						<span id="calTitle"></span>
+					</div>
+					<div class="cal-grid" id="calGrid"></div>
+					<div class="cal-legend">
+						<span><span class="legend-dot"
+							style="background: #ECFDF5; border: 1px solid #A7F3D0;"></span>정상</span>
+						<span><span class="legend-dot"
+							style="background: #FFF7ED; border: 1px solid #FDE68A;"></span>지각</span>
+						<span><span class="legend-dot" style="background: #1B4FD8;"></span>오늘</span>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- 근태 내역 테이블 -->
+			<div class="table-card">
+				<div class="table-card-title">이번달 근태 내역</div>
+				<table>
+					<thead>
+						<tr>
+							<th>날짜</th>
+							<th>출근</th>
+							<th>퇴근</th>
+							<th>근태 유형</th>
+							<th>상태</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="att : ${monthlyAtt}">
+							<td th:text="${att.attDate}">2026-04-28</td>
+							<td
+								th:text="${att.checkIn != null}
+                          ? ${#temporals.format(att.checkIn,'HH:mm')}
+                          : '—'">09:00</td>
+							<td
+								th:text="${att.checkOut != null}
+                          ? ${#temporals.format(att.checkOut,'HH:mm')}
+                          : '—'">18:00</td>
+							<td><span class="att-badge"
+								th:classappend="'att-' + ${att.attType}"
+								th:text="${att.attType}">정상</span></td>
+							<td th:text="${att.status}">미확정</td>
+						</tr>
+						<tr th:if="${#lists.isEmpty(monthlyAtt)}">
+							<td colspan="5"
+								style="text-align: center; padding: 40px; color: #94A3B8;">
+								이번달 근태 기록이 없습니다.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</main>
+	</div>
+
+	<script th:inline="javascript">
+  /* 서버에서 받은 이번달 근태 데이터 */
+  const monthlyAtt = /*[[${monthlyAtt}]]*/ [];
+
+  /* 실시간 시계 */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('ko-KR');
+    document.getElementById('dateLabel').textContent =
+      now.toLocaleDateString('ko-KR',
+        { year:'numeric', month:'long',
+          day:'numeric', weekday:'long' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* 출근 등록 */
+  async function doCheckIn() {
+    try {
+      const res = await fetch('/api/attendance/checkin',
+                              { method: 'POST' });
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        showAlert('error', msg);
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  /* 퇴근 등록 */
+  async function doCheckOut() {
+    try {
+      const res = await fetch('/api/attendance/checkout',
+                              { method: 'POST' });
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        showAlert('error', msg);
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  /* 알림 표시 */
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert-' + type);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  /* 캘린더 생성 */
+  function buildCalendar() {
+    const now   = new Date();
+    const year  = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+
+    document.getElementById('calTitle').textContent =
+      year + '년 ' + (month + 1) + '월';
+
+    const grid = document.getElementById('calGrid');
+    const days = ['일','월','화','수','목','금','토'];
+
+    // 요일 헤더
+    days.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-day-label';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    // 첫 날 요일
+    const firstDay = new Date(year, month, 1).getDay();
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      el.textContent = '-';
+      grid.appendChild(el);
+    }
+
+    // 근태 데이터를 날짜별로 맵핑
+    const attMap = {};
+    monthlyAtt.forEach(att => {
+      const d = new Date(att.attDate).getDate();
+      attMap[d] = att.attType;
+    });
+
+    // 날짜 채우기
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= totalDays; d++) {
+      const el = document.createElement('div');
+      el.textContent = d;
+
+      if (d === today) {
+        el.className = 'cal-day today';
+      } else if (attMap[d] === '정상') {
+        el.className = 'cal-day normal';
+      } else if (attMap[d] === '지각') {
+        el.className = 'cal-day late';
+      } else {
+        el.className = 'cal-day';
+      }
+      grid.appendChild(el);
+    }
+  }
+  buildCalendar();
+</script>
+</body>
+</html>

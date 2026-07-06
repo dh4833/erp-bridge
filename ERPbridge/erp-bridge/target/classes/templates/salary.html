@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 급여 관리</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--warning: #F59E0B;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+.page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.page-sub {
+	font-size: 13px;
+	color: var(--sub);
+	margin-top: 2px;
+}
+
+.btn-primary {
+	height: 38px;
+	padding: 0 18px;
+	background: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: var(--radius);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.btn-primary:hover {
+	background: #1440B3;
+}
+
+/* 급여 계산기 카드 */
+.calc-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.calc-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 16px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.calc-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.calc-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.calc-field label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--sub);
+}
+
+.calc-field input, .calc-field select {
+	height: 40px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 0 12px;
+	font-size: 13px;
+	outline: none;
+	font-family: inherit;
+}
+
+.calc-field input:focus, .calc-field select:focus {
+	border-color: var(--primary);
+}
+
+/* 계산 결과 미리보기 */
+.preview-box {
+	background: var(--surface);
+	border-radius: 8px;
+	padding: 14px 16px;
+	margin-bottom: 14px;
+	display: none;
+}
+
+.preview-box.show {
+	display: block;
+}
+
+.preview-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--sub);
+	margin-bottom: 10px;
+}
+
+.preview-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+}
+
+.preview-item {
+	background: var(--card);
+	border-radius: 6px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+}
+
+.preview-label {
+	font-size: 11px;
+	color: var(--sub);
+	margin-bottom: 4px;
+}
+
+.preview-value {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.preview-value.deduct {
+	color: var(--error);
+}
+
+.preview-value.net {
+	color: var(--success);
+	font-size: 16px;
+}
+
+.preview-divider {
+	grid-column: 1/-1;
+	border: none;
+	border-top: 1px dashed var(--border);
+	margin: 4px 0;
+}
+
+/* 테이블 */
+.table-wrap {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.table-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+.table-title {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+th {
+	background: var(--surface);
+	color: var(--sub);
+	font-weight: 500;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+	text-align: left;
+}
+
+td {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+	border-bottom: none;
+}
+
+tr:hover td {
+	background: var(--surface);
+}
+
+.amount {
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.deduct-amount {
+	color: var(--error);
+}
+
+.net-amount {
+	color: var(--success);
+	font-weight: 700;
+}
+
+.btn-sm {
+	height: 28px;
+	padding: 0 10px;
+	border-radius: 6px;
+	font-size: 12px;
+	cursor: pointer;
+	border: 1px solid var(--border);
+	background: var(--card);
+	color: var(--sub);
+}
+
+.btn-del {
+	border-color: var(--error);
+	color: var(--error);
+}
+
+.btn-del:hover {
+	background: #FEF2F2;
+}
+
+.alert {
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	margin-bottom: 14px;
+	display: none;
+}
+
+.alert.show {
+	display: block;
+}
+
+.alert-success {
+	background: #ECFDF5;
+	color: #065F46;
+	border: 1px solid #A7F3D0;
+}
+
+.alert-error {
+	background: #FEF2F2;
+	color: var(--error);
+	border: 1px solid #FECACA;
+}
+
+.info-tag {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-weight: 400;
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a class="nav-item"
+				href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item" href="/attendance">근태 현황</a> <a class="nav-item"
+				href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item active" href="/salary">급여 처리</a> <a
+				class="nav-item" href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="page-header">
+				<div>
+					<div class="page-title">급여 관리</div>
+					<div class="page-sub">4대보험 기반 급여를 자동으로 계산합니다</div>
+				</div>
+			</div>
+
+			<div id="alert-success" class="alert alert-success"></div>
+			<div id="alert-error" class="alert alert-error"></div>
+
+			<!-- 급여 계산기 -->
+			<div class="calc-card">
+				<div class="calc-title">
+					급여 계산기 <span class="info-tag">4대보험 2024년 기준 자동 적용</span>
+				</div>
+
+				<div class="calc-grid">
+					<div class="calc-field">
+						<label>직원 선택 *</label> <select id="c-emp"
+							onchange="updatePreview()">
+							<option value="">직원 선택</option>
+							<option th:each="emp : ${employees}" th:value="${emp.empId}"
+								th:text="${emp.empName} + ' (' + ${emp.empId} + ')'"></option>
+						</select>
+					</div>
+					<div class="calc-field">
+						<label>지급 연월 *</label> <input type="month" id="c-month"
+							oninput="updatePreview()" />
+					</div>
+					<div class="calc-field">
+						<label>기본급 (원) *</label> <input type="number" id="c-base"
+							placeholder="예: 3000000" oninput="updatePreview()" />
+					</div>
+					<div class="calc-field">
+						<label>상여금 (원)</label> <input type="number" id="c-bonus"
+							placeholder="예: 0" oninput="updatePreview()" />
+					</div>
+				</div>
+
+				<!-- 계산 결과 미리보기 -->
+				<div class="preview-box" id="previewBox">
+					<div class="preview-title">계산 결과 미리보기</div>
+					<div class="preview-grid">
+						<div class="preview-item">
+							<div class="preview-label">기본급</div>
+							<div class="preview-value" id="p-base">0 원</div>
+						</div>
+						<div class="preview-item">
+							<div class="preview-label">상여금</div>
+							<div class="preview-value" id="p-bonus">0 원</div>
+						</div>
+						<div class="preview-item">
+							<div class="preview-label">총 지급액</div>
+							<div class="preview-value" id="p-gross">0 원</div>
+						</div>
+						<hr class="preview-divider">
+						<div class="preview-item">
+							<div class="preview-label">4대보험</div>
+							<div class="preview-value deduct" id="p-insurance">-0 원</div>
+						</div>
+						<div class="preview-item">
+							<div class="preview-label">소득세+지방세</div>
+							<div class="preview-value deduct" id="p-tax">-0 원</div>
+						</div>
+						<div class="preview-item">
+							<div class="preview-label">총 공제액</div>
+							<div class="preview-value deduct" id="p-total-deduct">-0 원</div>
+						</div>
+						<hr class="preview-divider">
+						<div class="preview-item"
+							style="grid-column: 1/-1; background: #ECFDF5;">
+							<div class="preview-label">🏦 실수령액</div>
+							<div class="preview-value net" id="p-net">0 원</div>
+						</div>
+					</div>
+					<div
+						style="margin-top: 12px; display: flex; justify-content: flex-end;">
+						<button class="btn-primary" onclick="submitSalary()">급여
+							확정 저장</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- 급여 내역 테이블 -->
+			<div class="table-wrap">
+				<div class="table-header">
+					<div class="table-title">내 급여 내역</div>
+				</div>
+				<table>
+					<thead>
+						<tr>
+							<th>지급 연월</th>
+							<th>기본급</th>
+							<th>상여금</th>
+							<th>4대보험</th>
+							<th>소득세</th>
+							<th>실수령액</th>
+							<th>지급일</th>
+							<th>관리</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="s : ${mySalaries}">
+							<td
+								th:text="${#strings.substring(s.yearMonth.toString(),0,4) + '년 ' + #strings.substring(s.yearMonth.toString(),4,6) + '월'}">2026년
+								05월</td>
+							<td class="amount"
+								th:text="${#numbers.formatInteger(s.baseSalary,0,'COMMA')} + ' 원'">3,000,000
+								원</td>
+							<td class="amount"
+								th:text="${#numbers.formatInteger(s.bonus,0,'COMMA')} + ' 원'">0
+								원</td>
+							<td class="amount deduct-amount"
+								th:text="'-' + ${#numbers.formatInteger(s.insurance,0,'COMMA')} + ' 원'">-0
+								원</td>
+							<td class="amount deduct-amount"
+								th:text="'-' + ${#numbers.formatInteger(s.tax,0,'COMMA')} + ' 원'">-0
+								원</td>
+							<td class="amount net-amount"
+								th:text="${#numbers.formatInteger(s.netSalary,0,'COMMA')} + ' 원'">0
+								원</td>
+							<td th:text="${s.paidDate}">2026-05-01</td>
+							<td>
+								<button class="btn-sm btn-del" th:attr="data-id=${s.salaryId}"
+									onclick="deleteSalary(this.dataset.id)">삭제</button>
+							</td>
+						</tr>
+						<tr th:if="${#lists.isEmpty(mySalaries)}">
+							<td colspan="8"
+								style="text-align: center; padding: 40px; color: #94A3B8;">
+								급여 내역이 없습니다.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</main>
+	</div>
+
+	<script>
+  /* 4대보험 요율 (프론트 미리보기용) */
+  const PENSION     = 0.045;
+  const HEALTH      = 0.03545;
+  const LONG_TERM   = 0.1295;
+  const EMPLOYMENT  = 0.009;
+  const INCOME_TAX  = 0.03;
+  const LOCAL_TAX   = 0.1;
+
+  function calcInsurance(base) {
+    const pension    = Math.round(base * PENSION);
+    const health     = Math.round(base * HEALTH);
+    const longTerm   = Math.round(health * LONG_TERM);
+    const employment = Math.round(base * EMPLOYMENT);
+    return pension + health + longTerm + employment;
+  }
+
+  function calcTax(base) {
+    const income = Math.round(base * INCOME_TAX);
+    const local  = Math.round(income * LOCAL_TAX);
+    return income + local;
+  }
+
+  function formatNum(n) {
+    return n.toLocaleString('ko-KR') + ' 원';
+  }
+
+  /* 실시간 미리보기 */
+  function updatePreview() {
+    const base  = parseInt(document.getElementById('c-base').value)  || 0;
+    const bonus = parseInt(document.getElementById('c-bonus').value) || 0;
+
+    if (base <= 0) {
+      document.getElementById('previewBox').classList.remove('show');
+      return;
+    }
+
+    const insurance   = calcInsurance(base);
+    const tax         = calcTax(base);
+    const totalDeduct = insurance + tax;
+    const net         = base + bonus - totalDeduct;
+
+    document.getElementById('p-base').textContent      = formatNum(base);
+    document.getElementById('p-bonus').textContent     = formatNum(bonus);
+    document.getElementById('p-gross').textContent     = formatNum(base + bonus);
+    document.getElementById('p-insurance').textContent = '-' + formatNum(insurance);
+    document.getElementById('p-tax').textContent       = '-' + formatNum(tax);
+    document.getElementById('p-total-deduct').textContent = '-' + formatNum(totalDeduct);
+    document.getElementById('p-net').textContent       = formatNum(net);
+
+    document.getElementById('previewBox').classList.add('show');
+  }
+
+  /* 급여 확정 저장 */
+  async function submitSalary() {
+    const empId    = document.getElementById('c-emp').value;
+    const month    = document.getElementById('c-month').value;
+    const base     = parseInt(document.getElementById('c-base').value) || 0;
+    const bonus    = parseInt(document.getElementById('c-bonus').value) || 0;
+
+    if (!empId || !month || base <= 0) {
+      showAlert('error', '직원, 지급 연월, 기본급을 입력해주세요.');
+      return;
+    }
+
+    // 연월 형식 변환 (2026-05 → 202605)
+    const yearMonth = parseInt(month.replace('-', ''));
+
+    if (!confirm('급여를 확정 저장하시겠습니까?')) return;
+
+    try {
+      const res = await fetch('/api/salary/calculate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empId:      empId,
+          yearMonth:  yearMonth,
+          baseSalary: base,
+          bonus:      bonus
+        })
+      });
+
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        showAlert('error', msg);
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  /* 급여 삭제 */
+  async function deleteSalary(salaryId) {
+    if (!confirm('급여 내역을 삭제하시겠습니까?')) return;
+
+    try {
+      const res = await fetch('/api/salary/' + salaryId, {
+        method: 'DELETE'
+      });
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        showAlert('error', msg);
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  /* 알림 표시 */
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert-' + type);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3500);
+  }
+</script>
+</body>
+</html>

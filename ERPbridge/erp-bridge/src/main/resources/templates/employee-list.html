@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>ERP Bridge — 직원 관리</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1B4FD8; --surface: #F8FAFF;
+      --card: #FFFFFF; --border: #E2E8F0;
+      --text: #0F172A; --sub: #64748B;
+      --error: #EF4444; --success: #10B981;
+      --radius: 10px;
+    }
+    body { font-family: -apple-system, sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    .header { background: var(--card); border-bottom: 1px solid var(--border); height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
+    .logo-text { font-size: 16px; font-weight: 700; color: var(--text); }
+    .header-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--sub); }
+    .badge { font-size: 11px; background: #EEF2FF; color: var(--primary); padding: 2px 8px; border-radius: 20px; }
+    .logout-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); font-size: 13px; cursor: pointer; color: var(--sub); text-decoration: none; }
+    .layout { display: flex; flex: 1; }
+    .sidebar { width: 200px; background: var(--card); border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
+    .nav-section { font-size: 10px; color: var(--sub); padding: 12px 16px 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .nav-item { display: block; padding: 8px 16px; font-size: 13px; color: var(--sub); text-decoration: none; }
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active { background: #EEF2FF; color: var(--primary); font-weight: 500; border-right: 2px solid var(--primary); }
+    .main { flex: 1; padding: 24px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 20px; font-weight: 700; }
+    .page-sub { font-size: 13px; color: var(--sub); margin-top: 2px; }
+    .btn-primary { height: 38px; padding: 0 18px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; }
+    .btn-primary:hover { background: #1440B3; }
+    .btn-sm { height: 30px; padding: 0 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--sub); margin-right: 4px; }
+    .btn-edit { border-color: var(--primary); color: var(--primary); }
+    .btn-edit:hover { background: #EEF2FF; }
+    .btn-danger { border-color: var(--error); color: var(--error); }
+    .btn-danger:hover { background: #FEF2F2; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+    .search-input { height: 38px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 14px; font-size: 13px; width: 220px; outline: none; }
+    .search-input:focus { border-color: var(--primary); }
+    .filter-select { height: 38px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 10px; font-size: 13px; background: var(--card); outline: none; color: var(--sub); }
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: var(--surface); color: var(--sub); font-weight: 500; padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface); }
+    .emp-avatar { width: 28px; height: 28px; border-radius: 50%; background: #EEF2FF; color: var(--primary); font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; vertical-align: middle; }
+    .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+    .status-재직 { background: #ECFDF5; color: #065F46; }
+    .status-휴직 { background: #FFF7ED; color: #92400E; }
+    .status-퇴직 { background: var(--surface); color: var(--sub); }
+    .empty-msg { text-align: center; padding: 60px; color: var(--sub); font-size: 14px; }
+
+    /* ── 모달 공통 ── */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--card); border-radius: 12px; padding: 28px; width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: var(--sub); margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field label { font-size: 12px; font-weight: 500; color: var(--sub); }
+    .form-field input, .form-field select { height: 40px; border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 13px; outline: none; font-family: inherit; }
+    .form-field input:focus, .form-field select:focus { border-color: var(--primary); }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .btn-cancel { height: 38px; padding: 0 18px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; cursor: pointer; background: var(--card); color: var(--sub); font-family: inherit; }
+
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+    .alert.show { display: block; }
+    .alert-success { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+    .alert-error { background: #FEF2F2; color: var(--error); border: 1px solid #FECACA; }
+
+    /* 로딩 스피너 */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <a class="logo" href="/dashboard">
+    <div class="logo-mark">EB</div>
+    <div class="logo-text">ERP Bridge</div>
+  </a>
+  <div class="header-right">
+    <span th:text="${loginId} + ' 님'">사용자 님</span>
+    <span class="badge" th:text="${role}">USER</span>
+    <a class="logout-btn" href="/api/auth/logout">로그아웃</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">메인</div>
+    <a class="nav-item" href="/dashboard">대시보드</a>
+    <div class="nav-section">인사</div>
+    <a class="nav-item active" href="/employees">직원 관리</a>
+    <a class="nav-item" href="/org">조직도</a>
+    <div class="nav-section">근태</div>
+    <a class="nav-item" href="/attendance">근태 현황</a>
+    <a class="nav-item" href="/leave">연차·휴가</a>
+    <div class="nav-section">급여</div>
+    <a class="nav-item" href="/salary">급여 처리</a>
+    <a class="nav-item" href="/salary/list">급여명세서</a>
+    <div class="nav-section">결재·회계</div>
+    <a class="nav-item" href="#">전자결재</a>
+    <a class="nav-item" href="#">회계 관리</a>
+    <div class="nav-section">공통</div>
+    <a class="nav-item" href="#">공지사항</a>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">직원 관리</div>
+        <div class="page-sub">전체 직원 정보를 조회하고 관리합니다</div>
+      </div>
+      <button class="btn-primary" onclick="openAddModal()">+ 직원 등록</button>
+    </div>
+
+    <div id="alert-success" class="alert alert-success"></div>
+    <div id="alert-error"   class="alert alert-error"></div>
+
+    <div class="toolbar">
+      <input class="search-input" id="searchInput"
+             placeholder="이름 또는 이메일 검색"
+             oninput="filterTable()" />
+      <select class="filter-select" id="statusFilter"
+              onchange="filterTable()">
+        <option value="">전체 상태</option>
+        <option value="재직">재직</option>
+        <option value="휴직">휴직</option>
+        <option value="퇴직">퇴직</option>
+      </select>
+      <select class="filter-select" id="positionFilter"
+              onchange="filterTable()">
+        <option value="">전체 직급</option>
+        <option value="사원">사원</option>
+        <option value="대리">대리</option>
+        <option value="과장">과장</option>
+        <option value="차장">차장</option>
+        <option value="부장">부장</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>직원명</th>
+            <th>사번</th>
+            <th>이메일</th>
+            <th>연락처</th>
+            <th>직급</th>
+            <th>입사일</th>
+            <th>상태</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="empTableBody">
+          <tr th:each="emp : ${employees}">
+            <td>
+              <span class="emp-avatar"
+                    th:text="${#strings.substring(emp.empName,0,1)}">김</span>
+              <span th:text="${emp.empName}">홍길동</span>
+            </td>
+            <td style="color:#94A3B8;font-size:12px;"
+                th:text="${emp.empId}">EMP001</td>
+            <td th:text="${emp.empEmail}">hong@test.com</td>
+            <td th:text="${emp.empPhone != null ? emp.empPhone : '-'}">-</td>
+            <td th:text="${emp.position}">사원</td>
+            <td th:text="${emp.hireDate}">2024-01-01</td>
+            <td>
+              <span class="status-badge"
+                    th:classappend="'status-' + ${emp.status}"
+                    th:text="${emp.status}">재직</span>
+            </td>
+            <td>
+              <button class="btn-sm btn-edit"
+                      th:attr="data-id=${emp.empId}"
+                      onclick="openEditModal(this.dataset.id)">수정</button>
+              <button class="btn-sm btn-danger"
+                      th:attr="data-id=${emp.empId}"
+                      onclick="deleteEmployee(this.dataset.id)">퇴직</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-msg" th:if="${#lists.isEmpty(employees)}">
+        등록된 직원이 없습니다. 직원을 등록해주세요.
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════
+     직원 등록 모달
+════════════════════ -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <div class="modal-title">직원 등록</div>
+    <div class="modal-sub">새 직원 정보를 입력해주세요</div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>이름 *</label>
+        <input type="text" id="a-name" placeholder="홍길동" />
+      </div>
+      <div class="form-field">
+        <label>직급 *</label>
+        <select id="a-position">
+          <option value="">선택하세요</option>
+          <option>사원</option><option>대리</option>
+          <option>과장</option><option>차장</option><option>부장</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label>이메일 *</label>
+        <input type="email" id="a-email" placeholder="example@company.com" />
+      </div>
+      <div class="form-field">
+        <label>연락처</label>
+        <input type="text" id="a-phone" placeholder="010-0000-0000" />
+      </div>
+      <div class="form-field">
+        <label>입사일 *</label>
+        <input type="date" id="a-hiredate" />
+      </div>
+      <div class="form-field full">
+        <label>주소</label>
+        <input type="text" id="a-address" placeholder="주소 입력" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddModal()">취소</button>
+      <button class="btn-primary" id="btnAdd" onclick="submitAdd()">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════
+     직원 수정 모달
+════════════════════ -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title">직원 정보 수정</div>
+    <div class="modal-sub" id="editModalSub">직원 정보를 수정합니다</div>
+    <input type="hidden" id="e-empId" />
+    <div class="form-grid">
+      <div class="form-field">
+        <label>이름 *</label>
+        <input type="text" id="e-name" placeholder="홍길동" />
+      </div>
+      <div class="form-field">
+        <label>직급 *</label>
+        <select id="e-position">
+          <option value="">선택하세요</option>
+          <option>사원</option><option>대리</option>
+          <option>과장</option><option>차장</option><option>부장</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label>이메일 *</label>
+        <input type="email" id="e-email" placeholder="example@company.com" />
+      </div>
+      <div class="form-field">
+        <label>연락처</label>
+        <input type="text" id="e-phone" placeholder="010-0000-0000" />
+      </div>
+      <div class="form-field">
+        <label>입사일 *</label>
+        <input type="date" id="e-hiredate" />
+      </div>
+      <div class="form-field full">
+        <label>주소</label>
+        <input type="text" id="e-address" placeholder="주소 입력" />
+      </div>
+      <div class="form-field">
+        <label>재직 상태</label>
+        <select id="e-status">
+          <option value="재직">재직</option>
+          <option value="휴직">휴직</option>
+          <option value="퇴직">퇴직</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+      <button class="btn-primary" id="btnEdit" onclick="submitEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ────────────────────────────
+     등록 모달
+  ──────────────────────────── */
+  function openAddModal() {
+    document.getElementById('addModal').classList.add('show');
+  }
+  function closeAddModal() {
+    document.getElementById('addModal').classList.remove('show');
+    ['a-name','a-email','a-phone','a-address'].forEach(
+      id => document.getElementById(id).value = '');
+    document.getElementById('a-position').value = '';
+    document.getElementById('a-hiredate').value = '';
+  }
+  document.getElementById('addModal')
+    .addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeAddModal();
+    });
+
+  async function submitAdd() {
+    const name     = document.getElementById('a-name').value.trim();
+    const email    = document.getElementById('a-email').value.trim();
+    const phone    = document.getElementById('a-phone').value.trim();
+    const address  = document.getElementById('a-address').value.trim();
+    const position = document.getElementById('a-position').value;
+    const hireDate = document.getElementById('a-hiredate').value;
+
+    if (!name || !email || !position || !hireDate) {
+      showAlert('error', '이름, 이메일, 직급, 입사일은 필수입니다.');
+      return;
+    }
+
+    const btn = document.getElementById('btnAdd');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>등록 중...';
+
+    try {
+      const res = await fetch('/api/employees', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empName: name, empEmail: email,
+          empPhone: phone, empAddress: address,
+          position, hireDate
+        })
+      });
+      if (res.ok) {
+        closeAddModal();
+        showAlert('success', '직원이 성공적으로 등록되었습니다.');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showAlert('error', '등록 중 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '등록';
+    }
+  }
+
+  /* ────────────────────────────
+     수정 모달
+  ──────────────────────────── */
+  async function openEditModal(empId) {
+    /* 기존 직원 정보를 API로 불러와서 모달에 채움 */
+    try {
+      const res = await fetch('/api/employees/' + empId);
+      if (!res.ok) { showAlert('error', '직원 정보를 불러오지 못했습니다.'); return; }
+
+      const emp = await res.json();
+
+      document.getElementById('e-empId').value    = emp.empId;
+      document.getElementById('e-name').value     = emp.empName    || '';
+      document.getElementById('e-email').value    = emp.empEmail   || '';
+      document.getElementById('e-phone').value    = emp.empPhone   || '';
+      document.getElementById('e-address').value  = emp.empAddress || '';
+      document.getElementById('e-position').value = emp.position   || '';
+      document.getElementById('e-hiredate').value = emp.hireDate   || '';
+      document.getElementById('e-status').value   = emp.status     || '재직';
+      document.getElementById('editModalSub').textContent =
+        emp.empName + ' (' + emp.empId + ') 정보를 수정합니다';
+
+      document.getElementById('editModal').classList.add('show');
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+  }
+  document.getElementById('editModal')
+    .addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeEditModal();
+    });
+
+  async function submitEdit() {
+    const empId    = document.getElementById('e-empId').value;
+    const name     = document.getElementById('e-name').value.trim();
+    const email    = document.getElementById('e-email').value.trim();
+    const phone    = document.getElementById('e-phone').value.trim();
+    const address  = document.getElementById('e-address').value.trim();
+    const position = document.getElementById('e-position').value;
+    const hireDate = document.getElementById('e-hiredate').value;
+    const status   = document.getElementById('e-status').value;
+
+    if (!name || !email || !position || !hireDate) {
+      showAlert('error', '이름, 이메일, 직급, 입사일은 필수입니다.');
+      return;
+    }
+
+    const btn = document.getElementById('btnEdit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>저장 중...';
+
+    try {
+      const res = await fetch('/api/employees/' + empId, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empName: name, empEmail: email,
+          empPhone: phone, empAddress: address,
+          position, hireDate, status
+        })
+      });
+
+      if (res.ok) {
+        closeEditModal();
+        showAlert('success', '직원 정보가 수정되었습니다.');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showAlert('error', '수정 중 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '저장';
+    }
+  }
+
+  /* ────────────────────────────
+     퇴직 처리
+  ──────────────────────────── */
+  async function deleteEmployee(empId) {
+    if (!confirm(empId + ' 직원을 퇴직 처리하시겠습니까?')) return;
+    try {
+      const res = await fetch('/api/employees/' + empId,
+                              { method: 'DELETE' });
+      if (res.ok) {
+        showAlert('success', '퇴직 처리되었습니다.');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showAlert('error', '처리 중 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  /* ────────────────────────────
+     검색·필터
+  ──────────────────────────── */
+  function filterTable() {
+    const search   = document.getElementById('searchInput').value.toLowerCase();
+    const status   = document.getElementById('statusFilter').value;
+    const position = document.getElementById('positionFilter').value;
+
+    document.querySelectorAll('#empTableBody tr').forEach(row => {
+      const name  = row.cells[0]?.textContent.toLowerCase() || '';
+      const email = row.cells[2]?.textContent.toLowerCase() || '';
+      const pos   = row.cells[4]?.textContent || '';
+      const stat  = row.cells[6]?.textContent.trim() || '';
+
+      const ok = (name.includes(search) || email.includes(search))
+              && (!status   || stat === status)
+              && (!position || pos  === position);
+
+      row.style.display = ok ? '' : 'none';
+    });
+  }
+
+  /* ────────────────────────────
+     알림 표시
+  ──────────────────────────── */
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert-' + type);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>

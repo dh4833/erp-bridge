@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 조직도</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+.page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.page-sub {
+	font-size: 13px;
+	color: var(--sub);
+	margin-bottom: 24px;
+}
+
+.dept-section {
+	margin-bottom: 28px;
+}
+
+.dept-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--primary);
+	background: #EEF2FF;
+	padding: 6px 14px;
+	border-radius: 6px;
+	display: inline-block;
+	margin-bottom: 14px;
+}
+
+.emp-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.emp-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px;
+	width: 160px;
+	text-align: center;
+	transition: box-shadow .15s;
+	position: relative;
+}
+
+.emp-card:hover {
+	box-shadow: 0 4px 12px rgba(27, 79, 216, .1);
+	border-color: #C7D2FE;
+}
+
+.emp-avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: #EEF2FF;
+	color: var(--primary);
+	font-size: 18px;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 10px;
+}
+
+.emp-name {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.emp-pos {
+	font-size: 12px;
+	color: var(--sub);
+	margin-bottom: 6px;
+}
+
+.emp-email {
+	font-size: 11px;
+	color: #94A3B8;
+	word-break: break-all;
+}
+
+.emp-id {
+	font-size: 11px;
+	color: #C7D2FE;
+	margin-top: 4px;
+}
+
+/* 관리자 수정 버튼 */
+.edit-btn {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	font-size: 11px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--sub);
+}
+
+.edit-btn:hover {
+	background: #EEF2FF;
+	color: var(--primary);
+	border-color: var(--primary);
+}
+
+.empty-msg {
+	text-align: center;
+	padding: 60px;
+	color: var(--sub);
+	font-size: 14px;
+}
+
+/* 모달 */
+.modal-bg {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .4);
+	z-index: 1000;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-bg.show {
+	display: flex;
+}
+
+.modal {
+	background: var(--card);
+	border-radius: 12px;
+	padding: 28px;
+	width: 400px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+.modal-title {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 6px;
+}
+
+.modal-sub {
+	font-size: 13px;
+	color: var(--sub);
+	margin-bottom: 20px;
+}
+
+.form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-bottom: 14px;
+}
+
+.form-field label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--sub);
+}
+
+.form-field select, .form-field input {
+	height: 40px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 0 12px;
+	font-size: 13px;
+	outline: none;
+	font-family: inherit;
+}
+
+.form-field select:focus, .form-field input:focus {
+	border-color: var(--primary);
+}
+
+.modal-footer {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+}
+
+.btn-cancel {
+	height: 38px;
+	padding: 0 18px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	font-size: 14px;
+	cursor: pointer;
+	background: var(--card);
+	color: var(--sub);
+}
+
+.btn-primary {
+	height: 38px;
+	padding: 0 18px;
+	background: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: var(--radius);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.btn-primary:hover {
+	background: #1440B3;
+}
+
+.alert {
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	margin-bottom: 14px;
+	display: none;
+}
+
+.alert.show {
+	display: block;
+}
+
+.alert-success {
+	background: #ECFDF5;
+	color: #065F46;
+	border: 1px solid #A7F3D0;
+}
+
+.alert-error {
+	background: #FEF2F2;
+	color: var(--error);
+	border: 1px solid #FECACA;
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a
+				class="nav-item active" href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item" href="/attendance">근태 현황</a> <a class="nav-item"
+				href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item" href="/salary">급여 처리</a> <a class="nav-item"
+				href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="page-header">
+				<div>
+					<div class="page-title">조직도</div>
+				</div>
+			</div>
+			<div class="page-sub">
+				부서별 재직 직원 현황입니다 <span th:if="${role == 'ADMIN'}"
+					style="color: var(--primary); font-size: 12px; margin-left: 8px;">
+					✏ 카드의 연필 아이콘을 클릭해 부서·직급을 수정할 수 있습니다 </span>
+			</div>
+
+			<div id="alert-success" class="alert alert-success"></div>
+			<div id="alert-error" class="alert alert-error"></div>
+
+			<div class="empty-msg" th:if="${#lists.isEmpty(employees)}">
+				등록된 직원이 없습니다. <a href="/employees" style="color: var(--primary);">직원을
+					먼저 등록해주세요.</a>
+			</div>
+
+			<div id="orgWrap"></div>
+		</main>
+	</div>
+
+	<!-- 부서·직급 수정 모달 (관리자만) -->
+	<div class="modal-bg" id="editModal">
+		<div class="modal">
+			<div class="modal-title">직원 정보 수정</div>
+			<div class="modal-sub" id="editModalSub">직원 정보를 수정합니다</div>
+			<input type="hidden" id="edit-empId" />
+
+			<div class="form-field">
+				<label>부서</label> <select id="edit-dept">
+					<option value="">미배정</option>
+					<option value="1">경영지원팀</option>
+					<option value="2">개발팀</option>
+					<option value="3">영업팀</option>
+					<option value="4">마케팅팀</option>
+					<option value="5">재무팀</option>
+				</select>
+			</div>
+
+			<div class="form-field">
+				<label>직급</label> <select id="edit-position">
+					<option value="">선택</option>
+					<option value="사원">사원</option>
+					<option value="대리">대리</option>
+					<option value="과장">과장</option>
+					<option value="차장">차장</option>
+					<option value="부장">부장</option>
+				</select>
+			</div>
+
+			<div class="modal-footer">
+				<button class="btn-cancel" onclick="closeEditModal()">취소</button>
+				<button class="btn-primary" onclick="submitEdit()">저장</button>
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+  const employees = /*[[${employees}]]*/ [];
+  const isAdmin   = /*[[${role}]]*/ '' === 'ADMIN';
+
+  const deptNames = {
+    '1': '경영지원팀', '2': '개발팀',
+    '3': '영업팀', '4': '마케팅팀', '5': '재무팀'
+  };
+
+  const posOrder = ['부장','차장','과장','대리','사원'];
+
+  function buildOrg() {
+    const wrap = document.getElementById('orgWrap');
+    if (!employees || employees.length === 0) return;
+
+    const deptMap = {};
+    employees.forEach(emp => {
+      const key = emp.deptId
+                  ? (deptNames[emp.deptId] || '부서 ' + emp.deptId)
+                  : '미배정';
+      if (!deptMap[key]) deptMap[key] = [];
+      deptMap[key].push(emp);
+    });
+
+    Object.keys(deptMap).forEach(dept => {
+      const section = document.createElement('div');
+      section.className = 'dept-section';
+
+      const title = document.createElement('div');
+      title.className = 'dept-title';
+      title.textContent = dept;
+      section.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'emp-grid';
+
+      const sorted = deptMap[dept].sort((a, b) =>
+        posOrder.indexOf(a.position) - posOrder.indexOf(b.position)
+      );
+
+      sorted.forEach(emp => {
+        const card = document.createElement('div');
+        card.className = 'emp-card';
+
+        const initial = emp.empName ? emp.empName.charAt(0) : '?';
+
+        card.innerHTML = `
+          ${isAdmin ? `<button class="edit-btn"
+            onclick="openEditModal('${emp.empId}','${emp.empName}',
+              '${emp.deptId || ''}','${emp.position}')">✏</button>` : ''}
+          <div class="emp-avatar">${initial}</div>
+          <div class="emp-name">${emp.empName}</div>
+          <div class="emp-pos">${emp.position}</div>
+          <div class="emp-email">${emp.empEmail}</div>
+          <div class="emp-id">${emp.empId}</div>
+        `;
+        grid.appendChild(card);
+      });
+
+      section.appendChild(grid);
+      wrap.appendChild(section);
+    });
+  }
+
+  /* 수정 모달 열기 */
+  function openEditModal(empId, empName, deptId, position) {
+    document.getElementById('edit-empId').value = empId;
+    document.getElementById('editModalSub').textContent =
+      empName + ' 님의 정보를 수정합니다';
+    document.getElementById('edit-dept').value     = deptId || '';
+    document.getElementById('edit-position').value = position || '';
+    document.getElementById('editModal').classList.add('show');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+  }
+
+  /* 수정 저장 */
+  async function submitEdit() {
+    const empId    = document.getElementById('edit-empId').value;
+    const deptId   = document.getElementById('edit-dept').value;
+    const position = document.getElementById('edit-position').value;
+
+    try {
+      const res = await fetch('/api/employees/' + empId + '/dept', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deptId, position })
+      });
+
+      const msg = await res.text();
+      if (res.ok) {
+        closeEditModal();
+        showAlert('success', '직원 정보가 수정되었습니다.');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showAlert('error', msg);
+      }
+    } catch (e) {
+      showAlert('error', '서버 오류가 발생했습니다.');
+    }
+  }
+
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert-' + type);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  buildOrg();
+</script>
+</body>
+</html>

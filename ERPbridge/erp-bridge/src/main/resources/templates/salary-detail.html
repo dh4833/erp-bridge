@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 급여명세서 상세</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+/* 명세서 영역 */
+.slip-wrap {
+	max-width: 680px;
+	margin: 0 auto;
+}
+
+.slip-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	margin-bottom: 16px;
+}
+
+.btn-back {
+	height: 36px;
+	padding: 0 16px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+}
+
+.btn-print {
+	height: 36px;
+	padding: 0 16px;
+	border: none;
+	border-radius: 8px;
+	background: var(--primary);
+	color: #fff;
+	font-size: 13px;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+.btn-print:hover {
+	background: #1440B3;
+}
+
+/* 명세서 카드 */
+.slip {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.slip-header {
+	background: var(--primary);
+	padding: 24px 28px;
+	color: #fff;
+}
+
+.slip-header-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 16px;
+}
+
+.slip-company {
+	font-size: 22px;
+	font-weight: 700;
+	margin-bottom: 4px;
+}
+
+.slip-company-sub {
+	font-size: 13px;
+	opacity: 0.7;
+}
+
+.slip-month {
+	text-align: right;
+}
+
+.slip-month-label {
+	font-size: 12px;
+	opacity: 0.7;
+	margin-bottom: 4px;
+}
+
+.slip-month-value {
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.slip-emp-info {
+	display: flex;
+	gap: 24px;
+}
+
+.slip-emp-item {
+	font-size: 13px;
+	opacity: 0.85;
+}
+
+.slip-emp-item span {
+	opacity: 0.65;
+	margin-right: 6px;
+}
+
+.slip-body {
+	padding: 24px 28px;
+}
+
+.slip-section {
+	margin-bottom: 20px;
+}
+
+.slip-section-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--sub);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: 10px;
+}
+
+.slip-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--border);
+	font-size: 14px;
+}
+
+.slip-row:last-child {
+	border-bottom: none;
+}
+
+.slip-row-label {
+	color: var(--sub);
+}
+
+.slip-row-value {
+	font-weight: 500;
+}
+
+.slip-row-value.plus {
+	color: var(--text);
+}
+
+.slip-row-value.minus {
+	color: var(--error);
+}
+
+.slip-divider {
+	border: none;
+	border-top: 2px solid var(--border);
+	margin: 16px 0;
+}
+
+.slip-total {
+	background: #F0F9FF;
+	border-radius: 8px;
+	padding: 16px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.slip-total-label {
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.slip-total-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: var(--success);
+}
+
+.slip-footer {
+	background: var(--surface);
+	padding: 14px 28px;
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+	color: var(--sub);
+	border-top: 1px solid var(--border);
+}
+
+/* 인쇄 스타일 */
+@media print {
+	.header, .sidebar, .slip-actions {
+		display: none !important;
+	}
+	.layout {
+		display: block;
+	}
+	.main {
+		padding: 0;
+	}
+	.slip-wrap {
+		max-width: 100%;
+	}
+	body {
+		background: #fff;
+	}
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a class="nav-item"
+				href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item" href="/attendance">근태 현황</a> <a class="nav-item"
+				href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item" href="/salary">급여 처리</a> <a
+				class="nav-item active" href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="slip-wrap">
+
+				<div class="slip-actions">
+					<a class="btn-back" href="/salary/list">← 목록으로</a>
+					<button class="btn-print" onclick="window.print()">🖨 인쇄 /
+						PDF 저장</button>
+				</div>
+
+				<!-- 급여명세서 -->
+				<div class="slip" id="salarySlip">
+
+					<!-- 헤더 -->
+					<div class="slip-header">
+						<div class="slip-header-top">
+							<div>
+								<div class="slip-company">ERP Bridge</div>
+								<div class="slip-company-sub">급여명세서 (Salary Slip)</div>
+							</div>
+							<div class="slip-month">
+								<div class="slip-month-label">지급 연월</div>
+								<div class="slip-month-value"
+									th:text="${#strings.substring(salary.yearMonth.toString(),0,4)
+                             + '년 '
+                             + #strings.substring(salary.yearMonth.toString(),4,6)
+                             + '월'}">
+									2026년 05월</div>
+							</div>
+						</div>
+						<div class="slip-emp-info">
+							<div class="slip-emp-item">
+								<span>사번</span> <span th:text="${salary.empId}">EMP001</span>
+							</div>
+							<div class="slip-emp-item">
+								<span>아이디</span> <span th:text="${loginId}">4833dh</span>
+							</div>
+							<div class="slip-emp-item">
+								<span>지급일</span> <span th:text="${salary.paidDate}">2026-05-07</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- 본문 -->
+					<div class="slip-body">
+
+						<!-- 지급 항목 -->
+						<div class="slip-section">
+							<div class="slip-section-title">지급 항목</div>
+							<div class="slip-row">
+								<span class="slip-row-label">기본급</span> <span
+									class="slip-row-value plus"
+									th:text="${#numbers.formatInteger(salary.baseSalary,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+							<div class="slip-row">
+								<span class="slip-row-label">상여금</span> <span
+									class="slip-row-value plus"
+									th:text="${#numbers.formatInteger(salary.bonus,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+							<div class="slip-row" style="font-weight: 600;">
+								<span class="slip-row-label">총 지급액</span> <span
+									class="slip-row-value plus"
+									th:text="${#numbers.formatInteger(salary.baseSalary + salary.bonus,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+						</div>
+
+						<hr class="slip-divider">
+
+						<!-- 공제 항목 -->
+						<div class="slip-section">
+							<div class="slip-section-title">공제 항목</div>
+							<div class="slip-row">
+								<span class="slip-row-label">4대보험 <small
+									style="color: #94A3B8; font-size: 11px;"> (국민연금 + 건강보험
+										+ 장기요양 + 고용보험) </small>
+								</span> <span class="slip-row-value minus"
+									th:text="'-' + ${#numbers.formatInteger(salary.insurance,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+							<div class="slip-row">
+								<span class="slip-row-label">소득세 + 지방소득세</span> <span
+									class="slip-row-value minus"
+									th:text="'-' + ${#numbers.formatInteger(salary.tax,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+							<div class="slip-row" style="font-weight: 600;">
+								<span class="slip-row-label">총 공제액</span> <span
+									class="slip-row-value minus"
+									th:text="'-' + ${#numbers.formatInteger(salary.insurance + salary.tax,0,'COMMA')} + ' 원'">
+								</span>
+							</div>
+						</div>
+
+						<hr class="slip-divider">
+
+						<!-- 실수령액 -->
+						<div class="slip-total">
+							<div class="slip-total-label">🏦 실수령액</div>
+							<div class="slip-total-value"
+								th:text="${#numbers.formatInteger(salary.netSalary,0,'COMMA')} + ' 원'">
+							</div>
+						</div>
+
+					</div>
+
+					<!-- 푸터 -->
+					<div class="slip-footer">
+						<span>본 명세서는 ERP Bridge 시스템에서 자동 생성되었습니다.</span> <span
+							th:text="'지급일: ' + ${salary.paidDate}">지급일: 2026-05-07</span>
+					</div>
+
+				</div>
+			</div>
+		</main>
+	</div>
+
+</body>
+</html>

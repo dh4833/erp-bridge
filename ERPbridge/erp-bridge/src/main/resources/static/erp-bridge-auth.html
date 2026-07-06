@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Bridge — 로그인</title>
+<link
+	href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap"
+	rel="stylesheet">
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--primary-dark: #1440B3;
+	--primary-light: #EEF2FF;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--border-focus: #1B4FD8;
+	--text-primary: #0F172A;
+	--text-secondary: #64748B;
+	--text-hint: #94A3B8;
+	--error: #EF4444;
+	--error-bg: #FEF2F2;
+	--success: #10B981;
+	--success-bg: #ECFDF5;
+	--radius: 10px;
+}
+
+body {
+	font-family: 'Pretendard', -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text-primary);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	padding: 0 32px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+.logo-sub {
+	font-size: 11px;
+	color: var(--text-secondary);
+}
+
+.header-right {
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+.main {
+	flex: 1;
+	display: grid;
+	grid-template-columns: 1fr 480px;
+	min-height: calc(100vh - 56px);
+}
+
+.panel-left {
+	background: var(--primary);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 60px 56px;
+	position: relative;
+	overflow: hidden;
+}
+
+.panel-left::before {
+	content: '';
+	position: absolute;
+	top: -80px;
+	right: -80px;
+	width: 360px;
+	height: 360px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, .05);
+}
+
+.panel-left::after {
+	content: '';
+	position: absolute;
+	bottom: -60px;
+	left: -60px;
+	width: 280px;
+	height: 280px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, .04);
+}
+
+.panel-tagline {
+	font-size: 13px;
+	font-weight: 500;
+	color: rgba(255, 255, 255, .6);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	margin-bottom: 20px;
+}
+
+.panel-title {
+	font-size: 36px;
+	font-weight: 700;
+	color: #fff;
+	line-height: 1.25;
+	letter-spacing: -0.5px;
+	margin-bottom: 20px;
+}
+
+.panel-desc {
+	font-size: 15px;
+	color: rgba(255, 255, 255, .7);
+	line-height: 1.7;
+	margin-bottom: 44px;
+	max-width: 380px;
+}
+
+.feature-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.feature-item {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.feature-icon {
+	width: 36px;
+	height: 36px;
+	background: rgba(255, 255, 255, .12);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	flex-shrink: 0;
+}
+
+.feature-text {
+	font-size: 14px;
+	color: rgba(255, 255, 255, .85);
+}
+
+.panel-right {
+	background: var(--card);
+	border-left: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 48px 44px;
+	overflow-y: auto;
+}
+
+.tab-wrap {
+	display: flex;
+	background: var(--surface);
+	border-radius: var(--radius);
+	padding: 4px;
+	margin-bottom: 32px;
+	border: 1px solid var(--border);
+}
+
+.tab-btn {
+	flex: 1;
+	height: 38px;
+	border: none;
+	border-radius: 7px;
+	background: transparent;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: all .2s;
+}
+
+.tab-btn.active {
+	background: var(--card);
+	color: var(--primary);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}
+
+.form-panel {
+	display: none;
+}
+
+.form-panel.active {
+	display: block;
+}
+
+.form-heading {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--text-primary);
+	letter-spacing: -0.3px;
+	margin-bottom: 6px;
+}
+
+.form-sub {
+	font-size: 14px;
+	color: var(--text-secondary);
+	margin-bottom: 28px;
+}
+
+.field {
+	margin-bottom: 16px;
+}
+
+.field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+label {
+	display: block;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--text-primary);
+	margin-bottom: 6px;
+}
+
+.required {
+	color: var(--error);
+	margin-left: 2px;
+}
+
+input[type="text"], input[type="email"], input[type="password"], select
+	{
+	width: 100%;
+	height: 44px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--card);
+	padding: 0 14px;
+	font-family: inherit;
+	font-size: 14px;
+	color: var(--text-primary);
+	transition: border-color .15s, box-shadow .15s;
+	outline: none;
+	appearance: none;
+}
+
+input::placeholder {
+	color: var(--text-hint);
+}
+
+input:focus, select:focus {
+	border-color: var(--border-focus);
+	box-shadow: 0 0 0 3px rgba(27, 79, 216, .1);
+}
+
+input.error {
+	border-color: var(--error);
+}
+
+input.error:focus {
+	box-shadow: 0 0 0 3px rgba(239, 68, 68, .1);
+}
+
+.field-error {
+	font-size: 12px;
+	color: var(--error);
+	margin-top: 5px;
+	display: none;
+}
+
+.field-error.show {
+	display: block;
+}
+
+.pw-wrap {
+	position: relative;
+}
+
+.pw-wrap input {
+	padding-right: 44px;
+}
+
+.pw-toggle {
+	position: absolute;
+	right: 14px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--text-hint);
+	font-size: 14px;
+	padding: 2px;
+	line-height: 1;
+}
+
+.pw-strength {
+	margin-top: 8px;
+	display: none;
+}
+
+.pw-strength.show {
+	display: block;
+}
+
+.strength-bars {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 4px;
+}
+
+.strength-bar {
+	flex: 1;
+	height: 3px;
+	border-radius: 2px;
+	background: var(--border);
+	transition: background .2s;
+}
+
+.strength-bar.weak {
+	background: var(--error);
+}
+
+.strength-bar.medium {
+	background: #F59E0B;
+}
+
+.strength-bar.strong {
+	background: var(--success);
+}
+
+.strength-label {
+	font-size: 11px;
+	color: var(--text-hint);
+}
+
+.btn-primary {
+	width: 100%;
+	height: 46px;
+	background: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: var(--radius);
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background .15s, transform .1s;
+	margin-top: 8px;
+}
+
+.btn-primary:hover {
+	background: var(--primary-dark);
+}
+
+.btn-primary:active {
+	transform: scale(.99);
+}
+
+.alert {
+	padding: 12px 14px;
+	border-radius: var(--radius);
+	font-size: 13px;
+	margin-bottom: 16px;
+	display: none;
+	align-items: center;
+	gap: 8px;
+}
+
+.alert.show {
+	display: flex;
+}
+
+.alert-error {
+	background: var(--error-bg);
+	color: var(--error);
+	border: 1px solid #FECACA;
+}
+
+.alert-success {
+	background: var(--success-bg);
+	color: #065F46;
+	border: 1px solid #A7F3D0;
+}
+
+.check-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 20px;
+}
+
+.check-row input[type="checkbox"] {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--primary);
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.check-row label {
+	font-size: 13px;
+	color: var(--text-secondary);
+	margin: 0;
+	cursor: pointer;
+}
+
+.check-row a {
+	color: var(--primary);
+	text-decoration: none;
+}
+
+.form-footer {
+	text-align: center;
+	margin-top: 20px;
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+.form-footer a {
+	color: var(--primary);
+	font-weight: 500;
+	text-decoration: none;
+}
+
+@media ( max-width : 900px) {
+	.main {
+		grid-template-columns: 1fr;
+	}
+	.panel-left {
+		display: none;
+	}
+	.panel-right {
+		padding: 40px 28px;
+	}
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="#">
+			<div class="logo-mark">EB</div>
+			<div>
+				<div class="logo-text">ERP Bridge</div>
+				<div class="logo-sub">중소·중견기업 통합 ERP</div>
+			</div>
+		</a>
+		<div class="header-right">v1.0.0 — Semi Project</div>
+	</header>
+
+	<div class="main">
+
+		<!-- ── 왼쪽 소개 패널 ── -->
+		<div class="panel-left">
+			<div class="panel-tagline">ERP Bridge</div>
+			<h1 class="panel-title">
+				기업 경영의 모든 것을<br>하나의 플랫폼으로
+			</h1>
+			<p class="panel-desc">
+				인사·근태·급여·전자결재·회계까지<br> 중소·중견기업을 위한 경량형 통합 ERP 시스템입니다.
+			</p>
+			<div class="feature-list">
+				<div class="feature-item">
+					<div class="feature-icon">👥</div>
+					<div class="feature-text">인사·근태 통합 관리</div>
+				</div>
+				<div class="feature-item">
+					<div class="feature-icon">💰</div>
+					<div class="feature-text">4대보험 기반 급여 자동 계산</div>
+				</div>
+				<div class="feature-item">
+					<div class="feature-icon">✅</div>
+					<div class="feature-text">전자결재 워크플로우</div>
+				</div>
+				<div class="feature-item">
+					<div class="feature-icon">☁️</div>
+					<div class="feature-text">AWS 클라우드 기반 배포</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ── 오른쪽 폼 패널 ── -->
+		<div class="panel-right">
+
+			<div class="tab-wrap">
+				<button class="tab-btn active" onclick="switchTab('login')">로그인</button>
+				<button class="tab-btn" onclick="switchTab('signup')">회원가입</button>
+			</div>
+
+			<!-- ════════════════════
+         로그인 폼
+    ════════════════════ -->
+			<div id="form-login" class="form-panel active">
+				<div class="form-heading">다시 오셨군요!</div>
+				<div class="form-sub">계정 정보를 입력해 로그인하세요</div>
+
+				<div id="login-alert" class="alert alert-error">
+					<span>⚠</span> <span id="login-alert-msg">아이디 또는 비밀번호를 확인해
+						주세요.</span>
+				</div>
+
+				<div class="field">
+					<label for="login-id">아이디<span class="required">*</span></label> <input
+						type="text" id="login-id" placeholder="아이디를 입력하세요"
+						autocomplete="username" />
+					<div class="field-error" id="login-id-err">아이디를 입력해 주세요.</div>
+				</div>
+
+				<div class="field">
+					<label for="login-pw">비밀번호<span class="required">*</span></label>
+					<div class="pw-wrap">
+						<input type="password" id="login-pw" placeholder="비밀번호를 입력하세요"
+							autocomplete="current-password" />
+						<button class="pw-toggle" type="button"
+							onclick="togglePw('login-pw', this)">👁</button>
+					</div>
+					<div class="field-error" id="login-pw-err">비밀번호를 입력해 주세요.</div>
+				</div>
+
+				<div
+					style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+					<a href="#"
+						style="font-size: 13px; color: var(--primary); text-decoration: none;">비밀번호를
+						잊으셨나요?</a>
+				</div>
+
+				<button class="btn-primary" onclick="doLogin()">로그인</button>
+
+				<div class="form-footer">
+					계정이 없으신가요? <a href="#" onclick="switchTab('signup'); return false;">회원가입</a>
+				</div>
+			</div>
+
+			<!-- ════════════════════
+         회원가입 폼
+    ════════════════════ -->
+			<div id="form-signup" class="form-panel">
+				<div class="form-heading">계정을 만들어보세요</div>
+				<div class="form-sub">모든 항목을 정확히 입력해 주세요</div>
+
+				<div id="signup-alert" class="alert alert-error">
+					<span>⚠</span> <span id="signup-alert-msg">입력 내용을 확인해 주세요.</span>
+				</div>
+				<div id="signup-success" class="alert alert-success">
+					<span>✓</span> <span>회원가입이 완료됐습니다! 로그인 페이지로 이동합니다.</span>
+				</div>
+
+				<div class="field-row">
+					<div class="field" style="margin: 0;">
+						<label for="su-name">이름<span class="required">*</span></label> <input
+							type="text" id="su-name" placeholder="홍길동" />
+						<div class="field-error" id="su-name-err">이름을 입력해 주세요.</div>
+					</div>
+					<div class="field" style="margin: 0;">
+						<label for="su-id">아이디<span class="required">*</span></label> <input
+							type="text" id="su-id" placeholder="영문+숫자 6자 이상"
+							oninput="checkIdFormat()" />
+						<div class="field-error" id="su-id-err">영문·숫자 6자 이상 입력해 주세요.</div>
+					</div>
+				</div>
+
+				<div class="field">
+					<label for="su-email">이메일<span class="required">*</span></label> <input
+						type="email" id="su-email" placeholder="example@company.com" />
+					<div class="field-error" id="su-email-err">올바른 이메일 형식을 입력해
+						주세요.</div>
+				</div>
+
+				<div class="field">
+					<label for="su-dept">부서<span class="required">*</span></label> <select
+						id="su-dept">
+						<option value="">부서를 선택하세요</option>
+						<option>경영지원팀</option>
+						<option>개발팀</option>
+						<option>영업팀</option>
+						<option>마케팅팀</option>
+						<option>재무팀</option>
+					</select>
+					<div class="field-error" id="su-dept-err">부서를 선택해 주세요.</div>
+				</div>
+
+				<div class="field">
+					<label for="su-pw">비밀번호<span class="required">*</span></label>
+					<div class="pw-wrap">
+						<input type="password" id="su-pw" placeholder="영문+숫자+특수문자 8자 이상"
+							oninput="checkPwStrength()" autocomplete="new-password" />
+						<button class="pw-toggle" type="button"
+							onclick="togglePw('su-pw', this)">👁</button>
+					</div>
+					<div class="pw-strength" id="pw-strength">
+						<div class="strength-bars">
+							<div class="strength-bar" id="sb1"></div>
+							<div class="strength-bar" id="sb2"></div>
+							<div class="strength-bar" id="sb3"></div>
+							<div class="strength-bar" id="sb4"></div>
+						</div>
+						<div class="strength-label" id="strength-label">비밀번호 강도</div>
+					</div>
+					<div class="field-error" id="su-pw-err">비밀번호 8자 이상 입력해 주세요.</div>
+				</div>
+
+				<div class="field">
+					<label for="su-pw2">비밀번호 확인<span class="required">*</span></label>
+					<div class="pw-wrap">
+						<input type="password" id="su-pw2" placeholder="비밀번호를 다시 입력하세요"
+							oninput="checkPwMatch()" autocomplete="new-password" />
+						<button class="pw-toggle" type="button"
+							onclick="togglePw('su-pw2', this)">👁</button>
+					</div>
+					<div class="field-error" id="su-pw2-err">비밀번호가 일치하지 않습니다.</div>
+				</div>
+
+				<div class="check-row">
+					<input type="checkbox" id="su-agree" /> <label for="su-agree">
+						<a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의합니다 <span
+						class="required">*</span>
+					</label>
+				</div>
+
+				<button class="btn-primary" onclick="doSignup()">회원가입</button>
+
+				<div class="form-footer">
+					이미 계정이 있으신가요? <a href="#"
+						onclick="switchTab('login'); return false;">로그인</a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+  /* 탭 전환 */
+  function switchTab(tab) {
+    const isLogin = tab === 'login';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', isLogin ? i === 0 : i === 1);
+    });
+    document.getElementById('form-login').classList.toggle('active', isLogin);
+    document.getElementById('form-signup').classList.toggle('active', !isLogin);
+    hideAllAlerts();
+  }
+
+  /* 비밀번호 표시/숨김 */
+  function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.textContent = isText ? '👁' : '🙈';
+  }
+
+  /* 알림 전체 숨기기 */
+  function hideAllAlerts() {
+    document.querySelectorAll('.alert').forEach(a => a.classList.remove('show'));
+  }
+
+  /* 인라인 에러 표시/숨기기 */
+  function setError(inputId, errId, show) {
+    const input = document.getElementById(inputId);
+    const err   = document.getElementById(errId);
+    if (show) { input.classList.add('error');    err.classList.add('show'); }
+    else      { input.classList.remove('error'); err.classList.remove('show'); }
+    return show;
+  }
+
+  /* 아이디 형식 실시간 체크 */
+  function checkIdFormat() {
+    const val = document.getElementById('su-id').value;
+    const ok  = /^[a-zA-Z0-9]{6,}$/.test(val);
+    if (val.length > 0) setError('su-id', 'su-id-err', !ok);
+    else document.getElementById('su-id-err').classList.remove('show');
+  }
+
+  /* 비밀번호 강도 체크 */
+  function checkPwStrength() {
+    const pw       = document.getElementById('su-pw').value;
+    const strength = document.getElementById('pw-strength');
+    const label    = document.getElementById('strength-label');
+    const bars     = ['sb1','sb2','sb3','sb4'].map(id => document.getElementById(id));
+
+    if (!pw) { strength.classList.remove('show'); return; }
+    strength.classList.add('show');
+
+    let score = 0;
+    if (pw.length >= 8)          score++;
+    if (/[A-Za-z]/.test(pw))     score++;
+    if (/[0-9]/.test(pw))        score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    const cls    = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+    const labels = ['','취약','취약','보통','강함'];
+    const colors = { weak:'var(--error)', medium:'#F59E0B', strong:'var(--success)' };
+
+    bars.forEach((b, i) => {
+      b.className = 'strength-bar';
+      if (i < score) b.classList.add(cls);
+    });
+    label.textContent = '비밀번호 강도: ' + labels[score];
+    label.style.color = colors[cls];
+  }
+
+  /* 비밀번호 일치 체크 */
+  function checkPwMatch() {
+    const pw  = document.getElementById('su-pw').value;
+    const pw2 = document.getElementById('su-pw2').value;
+    if (pw2.length > 0) setError('su-pw2', 'su-pw2-err', pw !== pw2);
+  }
+
+  /* ════════════════════════════════
+     로그인 처리 → /api/auth/login
+  ════════════════════════════════ */
+  async function doLogin() {
+    hideAllAlerts();
+    const id = document.getElementById('login-id').value.trim();
+    const pw = document.getElementById('login-pw').value;
+    let hasErr = false;
+
+    if (!id) hasErr = setError('login-id', 'login-id-err', true) || hasErr;
+    else     setError('login-id', 'login-id-err', false);
+
+    if (!pw) hasErr = setError('login-pw', 'login-pw-err', true) || hasErr;
+    else     setError('login-pw', 'login-pw-err', false);
+
+    if (hasErr) return;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ loginId: id, password: pw })
+      });
+
+      if (res.ok) {
+        window.location.href = '/dashboard'; /* 5단계에서 완성 */
+      } else {
+        const msg = await res.text();
+        document.getElementById('login-alert-msg').textContent = msg;
+        document.getElementById('login-alert').classList.add('show');
+      }
+    } catch (e) {
+      document.getElementById('login-alert-msg').textContent =
+        '서버 연결에 실패했습니다. 서버가 실행 중인지 확인해 주세요.';
+      document.getElementById('login-alert').classList.add('show');
+    }
+  }
+
+  /* ════════════════════════════════
+     회원가입 처리 → /api/auth/signup
+  ════════════════════════════════ */
+  async function doSignup() {
+    hideAllAlerts();
+    let hasErr = false;
+
+    const name  = document.getElementById('su-name').value.trim();
+    const id    = document.getElementById('su-id').value.trim();
+    const email = document.getElementById('su-email').value.trim();
+    const dept  = document.getElementById('su-dept').value;
+    const pw    = document.getElementById('su-pw').value;
+    const pw2   = document.getElementById('su-pw2').value;
+    const agree = document.getElementById('su-agree').checked;
+
+    if (!name)
+      hasErr = setError('su-name',  'su-name-err',  true) || hasErr;
+    else setError('su-name', 'su-name-err', false);
+
+    if (!/^[a-zA-Z0-9]{6,}$/.test(id))
+      hasErr = setError('su-id',    'su-id-err',    true) || hasErr;
+    else setError('su-id', 'su-id-err', false);
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      hasErr = setError('su-email', 'su-email-err', true) || hasErr;
+    else setError('su-email', 'su-email-err', false);
+
+    if (!dept)
+      hasErr = setError('su-dept',  'su-dept-err',  true) || hasErr;
+    else setError('su-dept', 'su-dept-err', false);
+
+    if (pw.length < 8)
+      hasErr = setError('su-pw',    'su-pw-err',    true) || hasErr;
+    else setError('su-pw', 'su-pw-err', false);
+
+    if (pw !== pw2)
+      hasErr = setError('su-pw2',   'su-pw2-err',   true) || hasErr;
+    else setError('su-pw2', 'su-pw2-err', false);
+
+    if (!agree) {
+      document.getElementById('signup-alert-msg').textContent = '이용약관에 동의해 주세요.';
+      document.getElementById('signup-alert').classList.add('show');
+      hasErr = true;
+    }
+
+    if (hasErr) return;
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:     name,
+          loginId:  id,
+          email:    email,
+          dept:     dept,
+          password: pw
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById('signup-success').classList.add('show');
+        setTimeout(() => switchTab('login'), 2000);
+      } else {
+        const msg = await res.text();
+        document.getElementById('signup-alert-msg').textContent = msg;
+        document.getElementById('signup-alert').classList.add('show');
+      }
+    } catch (e) {
+      document.getElementById('signup-alert-msg').textContent =
+        '서버 연결에 실패했습니다. 서버가 실행 중인지 확인해 주세요.';
+      document.getElementById('signup-alert').classList.add('show');
+    }
+  }
+</script>
+</body>
+</html>

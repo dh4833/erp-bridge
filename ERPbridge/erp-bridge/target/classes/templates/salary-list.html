@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 급여명세서</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 700;
+	margin-bottom: 6px;
+}
+
+.page-sub {
+	font-size: 13px;
+	color: var(--sub);
+	margin-bottom: 24px;
+}
+
+.table-wrap {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+th {
+	background: var(--surface);
+	color: var(--sub);
+	font-weight: 500;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+	text-align: left;
+}
+
+td {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+	border-bottom: none;
+}
+
+tr:hover td {
+	background: var(--surface);
+}
+
+.amount {
+	font-weight: 500;
+}
+
+.net-amount {
+	color: var(--success);
+	font-weight: 700;
+}
+
+.deduct-amount {
+	color: var(--error);
+}
+
+.btn-view {
+	height: 28px;
+	padding: 0 12px;
+	border-radius: 6px;
+	font-size: 12px;
+	cursor: pointer;
+	border: 1px solid var(--primary);
+	background: #EEF2FF;
+	color: var(--primary);
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+}
+
+.btn-view:hover {
+	background: var(--primary);
+	color: #fff;
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a class="nav-item"
+				href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item" href="/attendance">근태 현황</a> <a class="nav-item"
+				href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item" href="/salary">급여 처리</a> <a
+				class="nav-item active" href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="page-title">급여명세서</div>
+			<div class="page-sub">월별 급여명세서를 확인하고 출력할 수 있습니다</div>
+
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>지급 연월</th>
+							<th>기본급</th>
+							<th>상여금</th>
+							<th>4대보험</th>
+							<th>소득세</th>
+							<th>실수령액</th>
+							<th>지급일</th>
+							<th>명세서</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="s : ${mySalaries}">
+							<td
+								th:text="${#strings.substring(s.yearMonth.toString(),0,4)
+                          + '년 '
+                          + #strings.substring(s.yearMonth.toString(),4,6)
+                          + '월'}">2026년
+								05월</td>
+							<td class="amount"
+								th:text="${#numbers.formatInteger(s.baseSalary,0,'COMMA')} + ' 원'">
+							</td>
+							<td class="amount"
+								th:text="${#numbers.formatInteger(s.bonus,0,'COMMA')} + ' 원'">
+							</td>
+							<td class="amount deduct-amount"
+								th:text="'-' + ${#numbers.formatInteger(s.insurance,0,'COMMA')} + ' 원'">
+							</td>
+							<td class="amount deduct-amount"
+								th:text="'-' + ${#numbers.formatInteger(s.tax,0,'COMMA')} + ' 원'">
+							</td>
+							<td class="amount net-amount"
+								th:text="${#numbers.formatInteger(s.netSalary,0,'COMMA')} + ' 원'">
+							</td>
+							<td th:text="${s.paidDate}">2026-05-01</td>
+							<td><a class="btn-view"
+								th:href="'/salary/detail/' + ${s.salaryId}"> 상세보기 </a></td>
+						</tr>
+						<tr th:if="${#lists.isEmpty(mySalaries)}">
+							<td colspan="8"
+								style="text-align: center; padding: 40px; color: #94A3B8;">
+								급여 내역이 없습니다.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</main>
+	</div>
+</body>
+</html>

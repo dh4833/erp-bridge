@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>ERP Bridge — 연차·휴가</title>
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--primary: #1B4FD8;
+	--surface: #F8FAFF;
+	--card: #FFFFFF;
+	--border: #E2E8F0;
+	--text: #0F172A;
+	--sub: #64748B;
+	--success: #10B981;
+	--warning: #F59E0B;
+	--error: #EF4444;
+	--radius: 10px;
+}
+
+body {
+	font-family: -apple-system, sans-serif;
+	background: var(--surface);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	padding: 0 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+}
+
+.logo-mark {
+	width: 32px;
+	height: 32px;
+	background: var(--primary);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.logo-text {
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 13px;
+	color: var(--sub);
+}
+
+.badge {
+	font-size: 11px;
+	background: #EEF2FF;
+	color: var(--primary);
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.logout-btn {
+	padding: 6px 14px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--card);
+	font-size: 13px;
+	cursor: pointer;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.layout {
+	display: flex;
+	flex: 1;
+}
+
+.sidebar {
+	width: 200px;
+	background: var(--card);
+	border-right: 1px solid var(--border);
+	padding: 16px 0;
+	flex-shrink: 0;
+}
+
+.nav-section {
+	font-size: 10px;
+	color: var(--sub);
+	padding: 12px 16px 4px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.nav-item {
+	display: block;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--sub);
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	background: var(--surface);
+	color: var(--text);
+}
+
+.nav-item.active {
+	background: #EEF2FF;
+	color: var(--primary);
+	font-weight: 500;
+	border-right: 2px solid var(--primary);
+}
+
+.main {
+	flex: 1;
+	padding: 24px;
+}
+
+.page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.page-sub {
+	font-size: 13px;
+	color: var(--sub);
+	margin-top: 2px;
+}
+
+.btn-primary {
+	height: 38px;
+	padding: 0 18px;
+	background: var(--primary);
+	color: #fff;
+	border: none;
+	border-radius: var(--radius);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.btn-primary:hover {
+	background: #1440B3;
+}
+
+.summary-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 14px;
+	margin-bottom: 20px;
+}
+
+.summary-card {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px 20px;
+}
+
+.summary-label {
+	font-size: 12px;
+	color: var(--sub);
+	margin-bottom: 6px;
+}
+
+.summary-value {
+	font-size: 24px;
+	font-weight: 700;
+}
+
+.summary-sub {
+	font-size: 11px;
+	color: var(--sub);
+	margin-top: 4px;
+}
+
+.table-wrap {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.table-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+.table-title {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+th {
+	background: var(--surface);
+	color: var(--sub);
+	font-weight: 500;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+	text-align: left;
+}
+
+td {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+	border-bottom: none;
+}
+
+tr:hover td {
+	background: var(--surface);
+}
+
+.status-badge {
+	font-size: 11px;
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.status-대기 {
+	background: #FFF7ED;
+	color: #92400E;
+}
+
+.status-승인 {
+	background: #ECFDF5;
+	color: #065F46;
+}
+
+.status-반려 {
+	background: #FEF2F2;
+	color: var(--error);
+}
+
+.status-취소 {
+	background: var(--surface);
+	color: var(--sub);
+}
+
+.btn-sm {
+	height: 28px;
+	padding: 0 10px;
+	border-radius: 6px;
+	font-size: 12px;
+	cursor: pointer;
+	border: 1px solid var(--border);
+	background: var(--card);
+	color: var(--sub);
+	margin-right: 4px;
+}
+
+.btn-approve {
+	background: #ECFDF5;
+	color: #065F46;
+	border-color: #A7F3D0;
+}
+
+.btn-approve:hover {
+	background: #D1FAE5;
+}
+
+.btn-cancel-sm {
+	border-color: var(--error);
+	color: var(--error);
+}
+
+.btn-cancel-sm:hover {
+	background: #FEF2F2;
+}
+
+.admin-section {
+	margin-top: 24px;
+}
+
+.admin-label {
+	font-size: 11px;
+	background: #FFF7ED;
+	color: #92400E;
+	padding: 2px 8px;
+	border-radius: 4px;
+	margin-left: 8px;
+	font-weight: 400;
+}
+
+.modal-bg {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .4);
+	z-index: 1000;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-bg.show {
+	display: flex;
+}
+
+.modal {
+	background: var(--card);
+	border-radius: 12px;
+	padding: 28px;
+	width: 480px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+.modal-title {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 20px;
+}
+
+.form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-bottom: 14px;
+}
+
+.form-field label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--sub);
+}
+
+.form-field input, .form-field select, .form-field textarea {
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 13px;
+	outline: none;
+	font-family: inherit;
+}
+
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus
+	{
+	border-color: var(--primary);
+}
+
+.form-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.days-preview {
+	font-size: 13px;
+	font-weight: 500;
+	margin-top: 4px;
+	min-height: 20px;
+}
+
+.modal-footer {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+}
+
+.btn-cancel {
+	height: 38px;
+	padding: 0 18px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	font-size: 14px;
+	cursor: pointer;
+	background: var(--card);
+	color: var(--sub);
+}
+
+.alert {
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	margin-bottom: 14px;
+	display: none;
+}
+
+.alert.show {
+	display: block;
+}
+
+.alert-success {
+	background: #ECFDF5;
+	color: #065F46;
+	border: 1px solid #A7F3D0;
+}
+
+.alert-error {
+	background: #FEF2F2;
+	color: var(--error);
+	border: 1px solid #FECACA;
+}
+</style>
+</head>
+<body>
+
+	<header class="header">
+		<a class="logo" href="/dashboard">
+			<div class="logo-mark">EB</div>
+			<div class="logo-text">ERP Bridge</div>
+		</a>
+		<div class="header-right">
+			<span th:text="${loginId} + ' 님'">사용자 님</span> <span class="badge"
+				th:text="${role}">USER</span> <a class="logout-btn"
+				href="/api/auth/logout">로그아웃</a>
+		</div>
+	</header>
+
+	<div class="layout">
+		<nav class="sidebar">
+			<div class="nav-section">메인</div>
+			<a class="nav-item" href="/dashboard">대시보드</a>
+			<div class="nav-section">인사</div>
+			<a class="nav-item" href="/employees">직원 관리</a> <a class="nav-item"
+				href="/org">조직도</a>
+			<div class="nav-section">근태</div>
+			<a class="nav-item" href="/attendance">근태 현황</a> <a
+				class="nav-item active" href="/leave">연차·휴가</a>
+			<div class="nav-section">급여</div>
+			<a class="nav-item" href="/salary">급여 처리</a> <a class="nav-item"
+				href="/salary/list">급여명세서</a>
+			<div class="nav-section">결재·회계</div>
+			<a class="nav-item" href="#">전자결재</a> <a class="nav-item" href="#">회계
+				관리</a>
+			<div class="nav-section">공통</div>
+			<a class="nav-item" href="#">공지사항</a>
+		</nav>
+
+		<main class="main">
+			<div class="page-header">
+				<div>
+					<div class="page-title">연차·휴가 신청</div>
+					<div class="page-sub">휴가를 신청하고 내역을 확인합니다</div>
+				</div>
+				<button class="btn-primary" onclick="openLeaveModal()">+ 휴가
+					신청</button>
+			</div>
+
+			<div id="alert-success" class="alert alert-success"></div>
+			<div id="alert-error" class="alert alert-error"></div>
+
+			<!-- 요약 카드 -->
+			<div class="summary-grid">
+				<div class="summary-card">
+					<div class="summary-label">전체 신청</div>
+					<div class="summary-value" th:text="${myLeaves.size()}">0</div>
+					<div class="summary-sub">건</div>
+				</div>
+				<div class="summary-card">
+					<div class="summary-label">대기 중</div>
+					<div class="summary-value" style="color: var(--warning);"
+						th:text="${pendingCount}">0</div>
+					<div class="summary-sub">건 처리 대기</div>
+				</div>
+				<div class="summary-card">
+					<div class="summary-label">승인 완료</div>
+					<div class="summary-value" style="color: var(--success);"
+						id="approvedCount">0</div>
+					<div class="summary-sub">건</div>
+				</div>
+			</div>
+
+			<!-- 내 신청 내역 테이블 -->
+			<div class="table-wrap">
+				<div class="table-header">
+					<div class="table-title">내 휴가 신청 내역</div>
+				</div>
+				<table>
+					<thead>
+						<tr>
+							<th>신청번호</th>
+							<th>휴가 유형</th>
+							<th>시작일</th>
+							<th>종료일</th>
+							<th>일수</th>
+							<th>사유</th>
+							<th>상태</th>
+							<th>관리</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="leave : ${myLeaves}">
+							<td style="color: #94A3B8; font-size: 12px;"
+								th:text="'#' + ${leave.leaveId}">#1</td>
+							<td th:text="${leave.leaveType}">연차</td>
+							<td th:text="${leave.startDate}">2026-01-01</td>
+							<td th:text="${leave.endDate}">2026-01-01</td>
+							<td th:text="${leave.leaveDays} + '일'">1일</td>
+							<td th:text="${leave.reason != null ? leave.reason : '-'}">-</td>
+							<td><span class="status-badge"
+								th:classappend="'status-' + ${leave.status}"
+								th:text="${leave.status}">대기</span></td>
+							<td>
+								<button class="btn-sm btn-cancel-sm"
+									th:if="${'대기'.equals(leave.status)}"
+									th:attr="data-id=${leave.leaveId}"
+									onclick="cancelLeave(this.dataset.id)">취소</button> <span
+								th:unless="${'대기'.equals(leave.status)}"
+								style="color: #94A3B8; font-size: 12px;">-</span>
+							</td>
+						</tr>
+						<tr th:if="${#lists.isEmpty(myLeaves)}">
+							<td colspan="8"
+								style="text-align: center; padding: 40px; color: #94A3B8;">
+								신청 내역이 없습니다.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- ════════════════════════════════
+         관리자 전용 — 전체 대기 신청 목록
+    ════════════════════════════════ -->
+			<div class="admin-section" th:if="${role == 'ADMIN'}">
+				<div class="table-wrap">
+					<div class="table-header">
+						<div class="table-title">
+							전체 대기 중인 휴가 신청 <span class="admin-label">관리자 전용</span>
+						</div>
+					</div>
+					<table>
+						<thead>
+							<tr>
+								<th>신청번호</th>
+								<th>신청자 사번</th>
+								<th>휴가 유형</th>
+								<th>시작일</th>
+								<th>종료일</th>
+								<th>일수</th>
+								<th>사유</th>
+								<th>처리</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="leave : ${pendingLeaves}">
+								<td style="color: #94A3B8; font-size: 12px;"
+									th:text="'#' + ${leave.leaveId}">#1</td>
+								<td th:text="${leave.empId}">EMP001</td>
+								<td th:text="${leave.leaveType}">연차</td>
+								<td th:text="${leave.startDate}">2026-01-01</td>
+								<td th:text="${leave.endDate}">2026-01-01</td>
+								<td th:text="${leave.leaveDays} + '일'">1일</td>
+								<td th:text="${leave.reason != null ? leave.reason : '-'}">-</td>
+								<td>
+									<button class="btn-sm btn-approve"
+										th:attr="data-id=${leave.leaveId}"
+										onclick="approveLeave(this.dataset.id)">승인</button>
+									<button class="btn-sm btn-cancel-sm"
+										th:attr="data-id=${leave.leaveId}"
+										onclick="rejectLeave(this.dataset.id)">반려</button>
+								</td>
+							</tr>
+							<tr
+								th:if="${pendingLeaves == null or #lists.isEmpty(pendingLeaves)}">
+								<td colspan="8"
+									style="text-align: center; padding: 30px; color: #94A3B8;">
+									대기 중인 신청이 없습니다.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+		</main>
+	</div>
+
+	<!-- 휴가 신청 모달 -->
+	<div class="modal-bg" id="leaveModal">
+		<div class="modal">
+			<div class="modal-title">휴가 신청</div>
+
+			<div class="form-field">
+				<label>휴가 유형 *</label> <select id="m-type">
+					<option value="">선택하세요</option>
+					<option value="연차">연차</option>
+					<option value="반차오전">반차 (오전)</option>
+					<option value="반차오후">반차 (오후)</option>
+					<option value="병가">병가</option>
+					<option value="경조사">경조사</option>
+					<option value="기타">기타</option>
+				</select>
+			</div>
+
+			<div class="form-row">
+				<div class="form-field">
+					<label>시작일 *</label> <input type="date" id="m-start"
+						oninput="calcDays()" />
+				</div>
+				<div class="form-field">
+					<label>종료일 *</label> <input type="date" id="m-end"
+						oninput="calcDays()" />
+				</div>
+			</div>
+			<div class="days-preview" id="daysPreview"></div>
+
+			<div class="form-field" style="margin-top: 12px;">
+				<label>사유 (선택)</label>
+				<textarea id="m-reason" rows="3" placeholder="사유를 입력하세요"></textarea>
+			</div>
+
+			<div class="modal-footer">
+				<button class="btn-cancel" onclick="closeLeaveModal()">취소</button>
+				<button class="btn-primary" onclick="submitLeave()">신청</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+  /* ── 모달 ── */
+  function openLeaveModal() {
+    document.getElementById('leaveModal').classList.add('show');
+  }
+  function closeLeaveModal() {
+    document.getElementById('leaveModal').classList.remove('show');
+    document.getElementById('m-type').value   = '';
+    document.getElementById('m-start').value  = '';
+    document.getElementById('m-end').value    = '';
+    document.getElementById('m-reason').value = '';
+    document.getElementById('daysPreview').textContent = '';
+  }
+  document.getElementById('leaveModal')
+    .addEventListener('click', function(e) {
+      if (e.target === this) closeLeaveModal();
+    });
+
+  /* ── 일수 계산 ── */
+  function calcDays() {
+    const start   = document.getElementById('m-start').value;
+    const end     = document.getElementById('m-end').value;
+    const preview = document.getElementById('daysPreview');
+    if (!start || !end) { preview.textContent = ''; return; }
+    const s = new Date(start), e = new Date(end);
+    if (e < s) {
+      preview.textContent = '⚠ 종료일이 시작일보다 빠릅니다.';
+      preview.style.color = 'var(--error)'; return;
+    }
+    const days = Math.round((e - s) / (1000*60*60*24)) + 1;
+    preview.textContent = '→ 총 ' + days + '일';
+    preview.style.color = 'var(--primary)';
+  }
+
+  /* ── 휴가 신청 ── */
+  async function submitLeave() {
+    const type   = document.getElementById('m-type').value;
+    const start  = document.getElementById('m-start').value;
+    const end    = document.getElementById('m-end').value;
+    const reason = document.getElementById('m-reason').value.trim();
+    if (!type || !start || !end) {
+      showAlert('error', '휴가 유형, 시작일, 종료일은 필수입니다.');
+      return;
+    }
+    if (new Date(end) < new Date(start)) {
+      showAlert('error', '종료일이 시작일보다 빠릅니다.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/leave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leaveType: type, startDate: start,
+          endDate: end, reason: reason
+        })
+      });
+      const msg = await res.text();
+      if (res.ok) {
+        closeLeaveModal();
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else { showAlert('error', msg); }
+    } catch (e) { showAlert('error', '서버 오류가 발생했습니다.'); }
+  }
+
+  /* ── 휴가 취소 (본인) ── */
+  async function cancelLeave(leaveId) {
+    if (!confirm('#' + leaveId + ' 신청을 취소하시겠습니까?')) return;
+    try {
+      const res = await fetch('/api/leave/' + leaveId,
+                              { method: 'DELETE' });
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', msg);
+        setTimeout(() => location.reload(), 1200);
+      } else { showAlert('error', msg); }
+    } catch (e) { showAlert('error', '서버 오류가 발생했습니다.'); }
+  }
+
+  /* ── 승인 (관리자) ── */
+  async function approveLeave(leaveId) {
+    if (!confirm('#' + leaveId + ' 신청을 승인하시겠습니까?')) return;
+    try {
+      const res = await fetch('/api/leave/' + leaveId + '/approve',
+                              { method: 'PUT' });
+      const msg = await res.text();
+      if (res.ok) {trfy76
+        showAlert('success', '승인되었습니다.');
+        setTimeout(() => location.reload(), 1200);
+      } else { showAlert('error', msg); }
+    } catch (e) { showAlert('error', '서버 오류가 발생했습니다.'); }
+  }
+
+  /* ── 반려 (관리자) ── */
+  async function rejectLeave(leaveId) {
+    if (!confirm('#' + leaveId + ' 신청을 반려하시겠습니까?')) return;
+    try {
+      const res = await fetch('/api/leave/' + leaveId + '/reject',
+                              { method: 'PUT' });
+      const msg = await res.text();
+      if (res.ok) {
+        showAlert('success', '반려되었습니다.');
+        setTimeout(() => location.reload(), 1200);
+      } else { showAlert('error', msg); }
+    } catch (e) { showAlert('error', '서버 오류가 발생했습니다.'); }
+  }
+
+  /* ── 알림 ── */
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert-' + type);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3500);
+  }
+</script>
+</body>
+</html>
